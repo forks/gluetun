@@ -13,7 +13,6 @@ import (
 	_ "time/tzdata"
 
 	_ "github.com/breml/rootcerts"
-	"github.com/qdm12/dns/pkg/unbound"
 	"github.com/qdm12/gluetun/internal/alpine"
 	"github.com/qdm12/gluetun/internal/cli"
 	"github.com/qdm12/gluetun/internal/configuration/settings"
@@ -51,7 +50,6 @@ import (
 	"github.com/qdm12/goshutdown/order"
 	"github.com/qdm12/gosplash"
 	"github.com/qdm12/log"
-	"github.com/qdm12/updated/pkg/dnscrypto"
 )
 
 //nolint:gochecknoglobals
@@ -257,16 +255,11 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 	ovpnConf := openvpn.New(
 		logger.New(log.SetComponent("openvpn configurator")),
 		cmder, puid, pgid)
-	dnsCrypto := dnscrypto.New(httpClient, "", "")
-	const cacertsPath = "/etc/ssl/certs/ca-certificates.crt"
-	dnsConf := unbound.NewConfigurator(nil, cmder, dnsCrypto,
-		"/etc/unbound", "/usr/sbin/unbound", cacertsPath)
 
 	err = printVersions(ctx, logger, []printVersionElement{
 		{name: "Alpine", getVersion: alpineConf.Version},
 		{name: "OpenVPN 2.5", getVersion: ovpnConf.Version25},
 		{name: "OpenVPN 2.6", getVersion: ovpnConf.Version26},
-		{name: "Unbound", getVersion: dnsConf.Version},
 		{name: "IPtables", getVersion: func(ctx context.Context) (version string, err error) {
 			return firewall.Version(ctx, cmder)
 		}},
@@ -296,14 +289,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 	if nonRootUsername != defaultUsername {
 		logger.Info("using existing username " + nonRootUsername + " corresponding to user id " + fmt.Sprint(puid))
 	}
-	// set it for Unbound
-	// TODO remove this when migrating to qdm12/dns v2
-	allSettings.DNS.DoT.Unbound.Username = nonRootUsername
 	allSettings.VPN.OpenVPN.ProcessUser = nonRootUsername
-
-	if err := os.Chown("/etc/unbound", puid, pgid); err != nil {
-		return err
-	}
 
 	if err := routingConf.Setup(); err != nil {
 		if strings.Contains(err.Error(), "operation not permitted") {
@@ -382,10 +368,10 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 	go portForwardLooper.Run(portForwardCtx, portForwardDone)
 
 	unboundLogger := logger.New(log.SetComponent("dns"))
-	unboundLooper := dns.NewLoop(dnsConf, allSettings.DNS, httpClient,
+	unboundLooper := dns.NewLoop(allSettings.DNS, httpClient,
 		unboundLogger)
 	dnsHandler, dnsCtx, dnsDone := goshutdown.NewGoRoutineHandler(
-		"unbound", goroutine.OptionTimeout(defaultShutdownTimeout))
+		"dns", goroutine.OptionTimeout(defaultShutdownTimeout))
 	// wait for unboundLooper.Restart or its ticker launched with RunRestartTicker
 	go unboundLooper.Run(dnsCtx, dnsDone)
 	otherGroupHandler.Add(dnsHandler)

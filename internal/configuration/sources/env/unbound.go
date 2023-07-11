@@ -17,20 +17,5 @@ func (s *Source) readUnbound() (unbound settings.Unbound, err error) {
 		return unbound, err
 	}
 
-	unbound.VerbosityLevel, err = s.env.Uint8Ptr("DOT_VERBOSITY")
-	if err != nil {
-		return unbound, err
-	}
-
-	unbound.VerbosityDetailsLevel, err = s.env.Uint8Ptr("DOT_VERBOSITY_DETAILS")
-	if err != nil {
-		return unbound, err
-	}
-
-	unbound.ValidationLogLevel, err = s.env.Uint8Ptr("DOT_VALIDATION_LOGLEVEL")
-	if err != nil {
-		return unbound, err
-	}
-
 	return unbound, nil
 }
