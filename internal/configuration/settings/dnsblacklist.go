@@ -3,7 +3,6 @@ package settings
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"net/netip"
 	"regexp"
 
@@ -84,7 +83,7 @@ func (b *DNSBlacklist) overrideWith(other DNSBlacklist) {
 	b.AddBlockedIPPrefixes = gosettings.OverrideWithSlice(b.AddBlockedIPPrefixes, other.AddBlockedIPPrefixes)
 }
 
-func (b DNSBlacklist) ToBlockBuilderSettings(client *http.Client) (
+func (b DNSBlacklist) ToBlockBuilderSettings() (
 	settings blockbuilder.Settings) {
 	return blockbuilder.Settings{
 		BlockMalicious:       b.BlockMalicious,

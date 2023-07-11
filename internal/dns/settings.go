@@ -22,13 +22,13 @@ func buildDoTSettings(settings settings.DNS,
 	filter *mapfilter.Filter, warner Warner) (
 	dotSettings dot.ServerSettings) {
 	var cache cache.Interface
-	if *settings.DoT.Unbound.Caching {
+	if *settings.DoT.Caching {
 		cache = lru.New(lru.Settings{})
 	}
-	providers := make([]provider.Provider, len(settings.DoT.Unbound.Providers))
-	for i := range settings.DoT.Unbound.Providers {
+	providers := make([]provider.Provider, len(settings.DoT.Providers))
+	for i := range settings.DoT.Providers {
 		var err error
-		providers[i], err = provider.Parse(settings.DoT.Unbound.Providers[i])
+		providers[i], err = provider.Parse(settings.DoT.Providers[i])
 		if err != nil {
 			panic(err) // this should already been checked
 		}
@@ -36,9 +36,9 @@ func buildDoTSettings(settings settings.DNS,
 
 	return dot.ServerSettings{
 		Resolver: dot.ResolverSettings{
-			DoTProviders: settings.DoT.Unbound.Providers,
-			DNSProviders: settings.DoT.Unbound.Providers,
-			IPv6:         *settings.DoT.Unbound.IPv6,
+			DoTProviders: settings.DoT.Providers,
+			DNSProviders: settings.DoT.Providers,
+			IPv6:         *settings.DoT.IPv6,
 			Warner:       warner,
 		},
 		Filter: filter,
