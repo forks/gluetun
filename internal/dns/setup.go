@@ -37,9 +37,8 @@ func (l *Loop) setupServer(ctx context.Context) (runError <-chan error, err erro
 		IP: settings.ServerAddress,
 	})
 	err = nameserver.UseDNSSystemWide(nameserver.SettingsSystemDNS{
-		IP:             settings.ServerAddress,
-		ResolvPath:     l.resolvConf,
-		KeepNameserver: *settings.KeepNameserver,
+		IP:         settings.ServerAddress,
+		ResolvPath: l.resolvConf,
 	})
 	if err != nil {
 		l.logger.Error(err.Error())

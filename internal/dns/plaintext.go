@@ -34,9 +34,8 @@ func (l *Loop) useUnencryptedDNS(fallback bool) {
 	nameserver.UseDNSInternally(settingsInternalDNS)
 
 	settingsSystemWide := nameserver.SettingsSystemDNS{
-		IP:             targetIP,
-		ResolvPath:     l.resolvConf,
-		KeepNameserver: false,
+		IP:         targetIP,
+		ResolvPath: l.resolvConf,
 	}
 	err := nameserver.UseDNSSystemWide(settingsSystemWide)
 	if err != nil {
